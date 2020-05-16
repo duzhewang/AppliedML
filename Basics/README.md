@@ -2,3 +2,5 @@
 
 - ROC and AUC
 
+- Generative and discriminative models
+
