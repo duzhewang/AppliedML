@@ -1,0 +1,104 @@
+---
+title: "ROC curve"
+author: "Duzhe Wang"
+date: "5/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Goal 
+
+The goal of this exercise is to plot the ROC curve and compute AUC. 
+
+# 2. Basic concepts 
+
+- The x-axis of ROC is false positive rate, which is defined as 
+
+$$\text{FPR}=\frac{\text{false positive}}{\text{negative}}$$
+
+- The y-axis of ROC is true positive rate, which is defined as 
+
+$$\text{TPR}=\frac{\text{true positive}}{\text{positive}}$$
+
+- AUC: area under the ROC curve
+
+# 3. Code 
+
+- Two classes: class 0 (positive) and class 1 (negative)
+
+- ROC curve function: 
+
+```{r}
+roc=function(groundtruth, predprob, theta){
+    # groudtruth: class 0 (positive) and class 1 (negative)
+    # predprob: predicted probability 
+    # theta: threshold between 0 and 1
+    # false positive rate: FP/N  (FP: true negative, but predicted positive)
+    # true positive rate (recall): TP/P
+      
+    groundtruth.negative=which(groundtruth==1)
+    groundtruth.positive=which(groundtruth==0)
+    
+    # first column: theta; second column: FPR; third column: TPR
+    rate=matrix(0, nrow=length(theta), ncol=3)   
+
+    for (i in 1:length(theta)){
+        # predicted class is 1 if predprob>theta; otherwise the predicted class is 0.
+        predclass=as.integer(predprob>theta[i])  
+        predclass.negative=which(predclass==1)
+        predclass.positive=which(predclass==0)
+        rate[i, 1]=theta[i]
+        # false positive rate
+        rate[i, 2]=length(intersect(groundtruth.negative,predclass.positive))/sum(groundtruth==1)      
+        # true positive rate
+        rate[i, 3]=length(intersect(groundtruth.positive,predclass.positive))/sum(groundtruth==0)      
+     }
+    
+    # plot ROC 
+    plot(rate[,2], rate[,3], xlab="FPR", ylab="TPR", type="l")
+    
+    # calculate AUC
+    sortedfpr=sort(rate[,2], decreasing=FALSE)
+    sortedtpr=sort(rate[,3], decreasing=FALSE)
+    auc=sum((sortedfpr[2:length(theta)]-sortedfpr[1:(length(theta)-1)])*sortedtpr[1:(length(theta)-1)])
+    
+    # return output 
+    return(list(rate=rate, auc=auc))
+}
+```
+
+
+# 4. Examples 
+
+```{r}
+groundtruth=sample(c(0, 1), size=10000, replace=TRUE,prob = c(0.8,0.2))
+predprob<-runif(10000,0,1)
+theta=seq(from=0.05, to=1, by=0.001)
+roc(groundtruth, predprob, theta)
+
+```
+
+**Explanation**: Let $n$ be the total sample size. Let $P(c=0)=p$ and $P(c=1)=1-p$. Since predprob is uniform, so given a fixed $\theta$, for $c=0$ group, there are around $np\theta$ observations which are predicted as 0 and around $np(1-\theta)$ observations which are predicted as 1. For $c=1$ group, there are around $n(1-p)\theta$ observations which are predicted as 0 and around $n(1-p)(1-\theta)$ observations which are predicted as 1. Therefore, the FPR is 
+
+$$  \frac{n(1-p)\theta}{n(1-p)}=\theta,$$
+and the TPR is 
+
+$$\frac{np\theta}{np}=\theta.$$
+Hence, the ROC curve is like the line $y=x$ and the AUC is 0.5. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
