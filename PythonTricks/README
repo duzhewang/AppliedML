@@ -1,1 +1,1 @@
-AAA
+- label.ipynb: change the class labels from a string representation into an integer format in Python using map
