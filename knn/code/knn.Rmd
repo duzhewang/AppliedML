@@ -1,0 +1,191 @@
+---
+title: "kNN in R"
+author: "Duzhe Wang"
+date: "5/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 0-Packages
+
+```{r}
+library(ggvis)   # visualization 
+library(class)   # knn
+library(gmodels)  # draw contingency table 
+library(caret)   # machine learning in R with caret
+```
+
+
+
+
+# 1-Iris dataset
+
+```{r}
+iris <- read.csv(url("http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"), header = FALSE) 
+
+# Add column names
+names(iris) <- c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species")
+
+head(iris)
+
+str(iris)
+
+
+table(iris$Species)
+
+
+summary(iris)
+```
+
+Next, let's visualize the dataset. 
+
+
+```{r}
+# iris scatter plot
+
+iris%>% ggvis(~Sepal.Length, ~Sepal.Width, fill=~Species) %>% layer_points()
+
+iris%>%ggvis(~Petal.Length, ~Petal.Width, fill=~Species)  %>% layer_points()
+
+```
+
+We can also calculate the correlation between different variables in the data set. 
+
+
+```{r}
+# overall correlation between Petal.Length and Petal.Width
+cor(iris$Petal.Length, iris$Petal.Width)
+
+# Return values of iris levels 
+
+x=levels(iris$Species)
+
+
+# Print Setosa correlation matrix
+print(x[1])
+cor(iris[iris$Species==x[1], 1:4])
+
+# print Versicolor correlation matrix 
+print(x[2])
+cor(iris[iris$Species==x[2], 1:4])
+
+# print Virginica correlation matrix
+
+print(x[3])
+cor(iris[iris$Species==x[3], 1:4])
+
+```
+
+
+# 2-Prepare the data 
+
+- min-max normalization 
+
+```{r}
+
+normalize <- function(x) {
+num <- x - min(x)
+denom <- max(x) - min(x)
+return (num/denom)
+}
+
+
+# Normalize the iris data
+iris_norm <- as.data.frame(lapply(iris[1:4], normalize))
+head(iris_norm)
+summary(iris_norm)
+```
+
+
+- Training and test sets 
+
+First, we need to shuffle the dataset
+
+```{r}
+set.seed(1234)
+ind=sample(2, nrow(iris), replace=TRUE, prob=c(0.67, 0.33))
+
+# training data
+iris.training=iris_norm[ind==1, 1:4]
+iris.trainlables=iris[ind==1, 5]
+
+# test data
+iris.test=iris_norm[ind==2, 1:4]
+iris.testlabels=iris[ind==2, 5]
+
+
+```
+
+# 3-build the knn model 
+
+```{r}
+
+iris_pred<-knn(train=iris.training, test=iris.test, cl=iris.trainlables, k=3)
+
+iris_pred
+```
+
+
+# 4-evaludate the model 
+
+```{r}
+merge=data.frame(iris_pred, iris.testlabels)
+names(merge)=c("Predicted Species", "Observed Species")
+merge
+
+# misclassification error 
+sum(merge[1]!=merge[2])/nrow(merge)
+```
+
+
+```{r}
+summary(iris.testlabels)
+CrossTable(x=iris.testlabels, y=iris_pred, prop.chisq = FALSE)
+
+table(x=iris.testlabels, y=iris_pred)
+```
+
+# 5- Use ```caret``` package
+
+```{r}
+# split training and test datasets
+index=createDataPartition(iris$Species, p=0.75, list=FALSE)
+iris.training<-iris[index, ]
+iris.test<-iris[-index, ]
+
+#overview of algorithms supported by caret
+#names(getModelInfo())
+
+# build a knn model
+model_knn=train(iris.training[, 1:4], iris.training[, 5], method="knn")
+
+# predict the labels of the test set
+predictions<-predict(object=model_knn, iris.test[, 1:4])
+
+# evaluate the predictions 
+table(predictions)
+
+confusionMatrix(predictions, iris.test[, 5])
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
