@@ -2,6 +2,9 @@
 
 ## Utility functions 
 - ROC and AUC
+- Normalization
+  - Standardization
+  - Min-max scaling 
 
 
 ## Concepts 
