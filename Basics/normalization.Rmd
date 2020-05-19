@@ -1,0 +1,131 @@
+---
+title: "Normalization"
+author: "Duzhe Wang"
+date: "5/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Normalization is very important to improve the performance of machine learning algorithms. If we don't normalize the data, the machine learning algorithm will be dominated by the variables that use a larger scale, adversely affecting model performance. 
+
+# Standardization 
+
+In this tutorial, we use the `iris` dataset. We first introduce the standardization technique. Mathematically, standardization uses the following equation:
+
+$$z=\frac{x-\mu}{\sigma},$$
+where $\mu=\frac{1}{N}\sum_{i=1}^{N}x_i$ and $\sigma=\sqrt{\frac{1}{N-1}\sum_{i=1}^{N}(x_i-\mu)^2}$. 
+
+- Bottom-up approach 
+
+```{r}
+
+standardization_vec=function(x){
+  # x is a vector
+  # this will make the new vector z has sample mean 0 and sample standard deviation 1
+  
+  mu=mean(x)
+  sigma=sd(x)
+  z=(x-mu)/sigma
+  return(z)
+}
+
+
+standardization_df=function(dat){
+  # dat is a data frame
+  # the output is still a data frame 
+  newdat=as.data.frame(lapply(dat, standardization_vec))
+  return(newdat)
+}
+
+
+```
+
+Now let's apply the above function to the iris data set. 
+
+```{r}
+iris_standard=standardization_df(iris[1:4])
+summary(iris_standard)
+mean(iris_standard$Sepal.Length)
+sd(iris_standard$Sepal.Length)
+```
+
+
+- Standardization using `caret` pacakge 
+
+```{r}
+library(caret)
+
+preproc=preProcess(iris[1:4], method=c("center", "scale"))
+iris_standard_caret=predict(preproc, iris[1:4])
+summary(iris_standard_caret)
+
+
+```
+
+- Standardization using `scale` function
+
+```{r}
+iris_standard_scale=as.data.frame(scale(iris[1:4]))
+summary(iris_standard_scale)
+```
+
+
+# Min-max scaling 
+
+Mathematically, min-max scaling is done as follows:
+
+$$x_{norm}=\frac{x-x_{\min}}{x_{\max}-x_{\min}}$$
+
+
+- Bottom-up approach 
+
+```{r}
+minmax_vec=function(x){
+  x_minmax=(x-min(x))/(max(x)-min(x))
+  return(x_minmax)
+}
+
+
+minmax_df=function(dat){
+  newdat=as.data.frame(lapply(dat, minmax_vec))
+  return(newdat)
+}
+
+```
+
+Now let's see the iris example. 
+
+
+```{r}
+iris_minmax=minmax_df(iris[1:4])
+summary(iris_minmax)
+```
+
+
+- Min-max using `caret` package
+
+```{r}
+
+preproc_minmax=preProcess(iris[1:4], method=c("range"))
+
+iris_minmax_caret=predict(preproc_minmax, iris[1:4])
+
+summary(iris_minmax_caret)
+str(iris_minmax_caret)
+
+
+```
+
+# Reference
+
+- [Normalizing data with R](https://www.pluralsight.com/guides/normalizing-data-r)
+
+
+
+
+
+
+
