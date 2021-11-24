@@ -1,1 +1,4 @@
-
+- Reference: 
+  - Overview: https://www.microsoft.com/en-us/research/project/econml/
+  - Github: https://github.com/Microsoft/EconML
+  - Documentation: https://econml.azurewebsites.net/
