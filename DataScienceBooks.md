@@ -1,3 +1,4 @@
 - [Applied Predictive Modeling](http://appliedpredictivemodeling.com/)
 - [Feature Engineering and Selection: A Practical Approach for Predictive Models](http://www.feat.engineering/)
 - [Data Science for Biological, Medical and Health Research](https://thomaselove.github.io/432-notes/index.html)
+- [Introduction to Data Science](https://rafalab.github.io/dsbook/)
