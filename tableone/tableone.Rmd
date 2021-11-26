@@ -1,0 +1,119 @@
+---
+title: "Table one"
+author: "Duzhe Wang"
+date: "11/25/2021"
+output: html_document
+---
+## Introduction
+
+- Most part of this note is from Chapter 1 of [Data Science for Biological, Medical and Health Research](https://thomaselove.github.io/432-notes/index.html). 
+
+- Other reference: [Introduction to tableone](https://cran.r-project.org/web/packages/tableone/vignettes/introduction.html)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Building Table 1 for `fakestroke`: Attempt 1
+
+```{r}
+library(tidyverse)
+library(tableone)
+fakestroke=read_csv("fakestroke.csv")
+```
+
+```{r}
+# generate a list of all of the variables in the tibble
+dput(names(fakestroke))
+```
+
+```{r}
+fs.vars=c("age", "sex", "nihss", "location", "hx.isch", 
+"afib", "dm", "mrankin", "sbp", "iv.altep", "time.iv", "aspects", 
+"ia.occlus", "extra.ica", "time.rand", "time.punc")
+
+fs.trt=c("trt")
+
+att1=CreateTableOne(data=fakestroke, 
+                    vars=fs.vars,
+                    strata=fs.trt)
+print(att1)
+```
+
+
+## Buliding Table 1 for `fakestroke`: Attempt 2
+
+Some of this is very helpful, and other parts need to be fixed:
+
+- The 1/0 variables (`afib`, `dm`, `extra.ica`) might be better if they were treated as the factors they are, and reported as the Yes/No variables, with counts and percentages rather than means and sd. 
+
+- In some cases, we may prefer to re-order the levels of the categorical variables, particularly the `mrankin` variable, but also the `ia.occlus` variable. It would also be more typicla to put the intervention group to th left and the control group to the right, so we may need to adjust our `trt` variable's levels accordingly. 
+
+- For each of the quantitative variables, we should make a decision whether a summary with mean and sd is appropriate, or whether we should instead summarize with the median and quartiles. 
+
+- If we'd left in the `time.punc` variable, we'd get some warnings, having to do with the fact that `time.punc` is only relevant to patients in the intervention group
+
+```{r}
+# specify the categorical variables
+fs.factorvars=c("sex", "location", "hx.isch", "afib", "dm", "mrankin", "iv.altep", "ia.occlus", "extra.ica")
+
+# re-order some of the categorical variabeles so that the levels are most useful to us
+fakestroke=fakestroke%>%
+  mutate(trt=fct_relevel(trt, "Intervention", "Control"),
+         mrankin=fct_relevel(mrankin, "0", "1", "2", ">2"),
+         ia.occlus=fct_relevel(ia.occlus, "Intracranial ICA", "ICA with M1", "M1", "M2", "A1 or A2")
+         )
+```
+
+
+
+
+```{r}
+att2=CreateTableOne(data=fakestroke,
+                    vars=fs.vars,
+                    factorVars = fs.factorvars,
+                    strata=fs.trt)
+print(att2)
+
+
+```
+
+
+```{r}
+# specify certain quantitative variables as non-normal 
+# specify exact tests for certain categorical variables 
+print(att2, 
+      nonnormal=c("age", "nihss",  "time.iv", "aspects", "time.rand"),
+      exact=c("location", "mrankin"))
+
+
+```
+
+
+
+## Obtaining a more detailed summary
+
+```{r}
+summary(att2)
+
+
+```
+
+
+## Exporting the completed table 1 from R to Excel or Word
+
+- Save and open in Excel
+
+```{r}
+fs.table1save=print(att2, 
+                    nonnormal=c("age", "nihss", "time.iv", "aspects", "time.rand"),
+                    exact=c("location", "mrankin"),
+                    quote=FALSE, noSpaces=TRUE, printToggle=FALSE)
+write.csv(fs.table1save, file="/Users/duzhewang/Desktop/tableone/fstable1.csv")
+
+
+```
+
+
+
+
