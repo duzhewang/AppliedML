@@ -1,0 +1,59 @@
+---
+title: "emmeans package"
+author: "Duzhe Wang (wang_duzhe@lilly.com)"
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    code_folding: show
+    toc: TRUE
+    toc_float: TRUE
+---
+
+<link rel="stylesheet" href="styles.css" type="text/css">
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Reference
+
+- https://cran.r-project.org/web/packages/emmeans/vignettes/basics.html
+- https://cran.r-project.org/web/packages/emmeans/vignettes/comparisons.html
+
+
+## Basics of estimated merginal means 
+
+```{r}
+rm(list=ls())
+library(emmeans)
+library(tidyverse)
+pigs
+```
+
+```{r}
+with(pigs, interaction.plot(percent, source, conc))
+pigs%>%group_by(percent)%>%summarise(marginalmean=mean(conc))
+pigs%>%group_by(percent, source)%>%summarise(mean(conc))
+```
+
+
+
+```{r}
+lm1=lm(conc ~ source + factor(percent), data = pigs)
+summary(lm1)
+
+
+```
+
+
+```{r}
+lsm=emmeans(lm1, specs = "source")
+lsm
+pairs(lsm)
+```
+
+
+
