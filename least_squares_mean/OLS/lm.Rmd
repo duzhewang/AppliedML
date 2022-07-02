@@ -1,0 +1,52 @@
+---
+title: "Linear regression with and without intercepts"
+author: "Duzhe Wang (wang_duzhe@lilly.com)"
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    code_folding: show
+    toc: TRUE
+    toc_float: TRUE
+---
+
+<link rel="stylesheet" href="styles.css" type="text/css">
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(emmeans)
+library(tidyverse)
+pigs
+```
+
+```{r}
+lm1=lm(conc~factor(percent), data = pigs)
+summary(lm1)
+model.matrix(lm1)
+```
+
+```{r}
+lm2=lm(conc ~ factor(percent) - 1, data = pigs)
+summary(lm2)
+model.matrix(lm2)
+```
+
+```{r}
+lm3=lm(conc ~ source + factor(percent), data = pigs)
+summary(lm3)
+```
+
+
+```{r}
+lm4=lm(conc ~ source + factor(percent) -1 ,data = pigs)
+summary(lm4)
+```
+
+
+```{r}
+pigs%>%group_by(percent, source)%>%summarise(mean(conc))
+```
+
